@@ -18,7 +18,61 @@ This kernel supports the following C API:
 | 0x02             |    int mem_free (void*);                                                                                                                   | Frees the memory that was previously allocated with mem_alloc (the argument must be pointer returned from mem_alloc), returns 0 if operation was successful, otherwise negative value.           |
 | 0x11             |    class _thread; <br> typedef _thread* thread_t; <br> <br> int thread_create ( thread_t* handle, void(*start_routine)(void*), void* arg); | Start a new thread on |
 
+This kernel suppports the following C++ API:
+```
+void* ::operator new (size_t);
+void ::operator delete (void*);
 
+class Thread {
+public:
+    Thread (void (*body)(void*), void* arg);
+    virtual ~Thread ();
+
+    int start ();
+    void join();
+
+    static void dispatch ();
+    static int sleep (time_t);
+
+protected:
+    Thread ();
+    virtual void run () {}
+
+private:
+    thread_t myHandle;
+    void (*body)(void*); void* arg;
+};
+
+class Semaphore {
+public:
+    Semaphore (unsigned init = 1);
+    virtual ~Semaphore ();
+
+    int wait ();
+    int signal ();
+
+private:
+    sem_t myHandle;
+};
+
+class PeriodicThread : public Thread {
+public:
+    void terminate ();
+
+protected:
+    PeriodicThread (time_t period);
+    virtual void periodicActivation () {}
+
+private:
+    time_t period;
+};
+
+class Console {
+public:
+    static char getc ();
+    static void putc (char);
+};
+```
 
 
 # How to run it?
