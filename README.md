@@ -1,5 +1,11 @@
 # RISC-V-OS1-Kernel
-This repository contains my kernel that I have built as part of the "Operating Systems 1" course at the University of Belgrade School of Electrical Engineering.
+This repository contains my kernel that I have built as part of the "Operating Systems 1" course at the University of Belgrade at the School of Electrical Engineering.
+
+This kernel has following important characteristics:
+- The kernel supports asynchronous preemption. Meaning it can change the current running thread with another thread uppon interrupt.
+- The threads share the CPU across the time, with timed interrupts, by utilizing Round Robin scheduling algorithm.
+- Every thread has two stacks, one for userspace, and another for kernel operations.
+- The kernel does all of this with a single CPU core.
 
 This kernel supports the following C API:
  
