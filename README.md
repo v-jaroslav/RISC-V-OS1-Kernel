@@ -23,7 +23,7 @@ Third, build the docker image that will contain all the tools necessary in order
 
 Fourth, start the docker container based on the previously built image, in a way that you can interact with its console `docker run -it risc-v-kernel`.
 
-Fifth, if you want to ever leave the kernel, just press `CTRL + A + X` all at the same time.
+Fifth, if you want to ever leave the kernel, just press `CTRL + A` and immediatelly after that press `X`
 
 The docker image you have built, contains the necessary cross compilers to compile the code for RISC-V machine, even tho you will probably run this on x86 machine.
 
