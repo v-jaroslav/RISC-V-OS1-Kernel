@@ -7,7 +7,7 @@ static Kernel::Sem console_sem;
 
 static void console_lock() {
     static bool initialized = false;
-    if(!initialized) {
+    if (!initialized) {
         console_sem.initialize(1);
         initialized = true;
     }
