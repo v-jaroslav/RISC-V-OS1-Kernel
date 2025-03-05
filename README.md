@@ -10,7 +10,7 @@ This kernel has following important characteristics:
 - The kernel does all of this with a single CPU core.
 
 
-This kernel supports the following C API:
+## This kernel supports the following C API:
  
 | System Call Code |       Signature                                                                                                                            | Explanation                                                                                                                                                                                      |
 |------------------|--------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -18,7 +18,7 @@ This kernel supports the following C API:
 | 0x02             |    int mem_free (void*);                                                                                                                   | Frees the memory that was previously allocated with mem_alloc (the argument must be pointer returned from mem_alloc), returns 0 if operation was successful, otherwise negative value.           |
 | 0x11             |    class _thread; <br> typedef _thread* thread_t; <br> <br> int thread_create ( thread_t* handle, void(*start_routine)(void*), void* arg); | Start a new thread on |
 
-This kernel suppports the following C++ API:
+## This kernel suppports the following C++ API:
 ```
 void* ::operator new (size_t);
 void ::operator delete (void*);
@@ -75,27 +75,28 @@ public:
 ```
 
 
-# How to run it?
+## How to run it?
 If you would like to run this kernel and try it out, you must have two things installed on your machine, `git` and `docker`.
 
-First you must clone this repository to your machine with `git clone https://github.com/v-jaroslav/RISC-V-OS1-Kernel`
+1. Clone this repository to your machine with `git clone https://github.com/v-jaroslav/RISC-V-OS1-Kernel`
 
-Second, make sure you are located in the directory of the cloned repository, so just execute `cd RISC-V-OS1-Kernel`
+2. Make sure you are located in the directory of the cloned repository, execute `cd RISC-V-OS1-Kernel`
 
-Third, build the docker image that will contain all the tools necessary in order to run the kernel, you can do this with the following command `docker build -f .\main.dockerfile --tag risc-v-kernel .`
+3. Build the docker image based on the `dockerfile`, with the command `docker build -f .\main.dockerfile --tag risc-v-kernel .`
 
-Fourth, start the docker container based on the previously built image, in a way that you can interact with its console `docker run -it risc-v-kernel`
+4. Start the docker container based on the previously built image, such that you can interact with its console `docker run -it risc-v-kernel`
 
-Fifth, if you want to ever stop the kernel (by stopping QEMU), just press `CTRL + A` and immediatelly after that press `X`
+5. If you want to ever stop the kernel (by stopping QEMU), just press `CTRL + A` and immediatelly after that press `X`
 
-The docker image you have built, based on that `dockerfile`, contains the necessary cross compilers to compile the code for RISC-V machine.
+The docker image you have built, based on that `dockerfile`, contains the necessary cross compilers to compile the code for RISC-V machine. 
+It also contains QEMU (open source machine emulator / virtualizer), through which you can run this kernel.
 
-And it also contains QEMU (open source machine emulator / virtualizer), through which you can run this kernel.
+By default, the tests that I have written will execute, and also the public tests (given by faculty) that were used to test this kernel at home while developing it.
 
-By default, the tests that I have written will execute, and also the public tests that were used to test this kernel at home while developing it.
+If you want to change that, you have to provide your own `void userMain()` function, preferrably in `project/src/main.cpp`. 
 
-If you want to change that, you have to provide your own `void userMain()` function, preferrably in `project/src/main.cpp`.
+And you will have to comment out already given definition for such function (or change its name) at `project/tests/userMain.cpp`
 
-And you will have to comment the one out (or change its signature name) located in: `project/tests/userMain.cpp`
+Keep in mind, that this function runs in user level privilege. To access kernel level privilege, you can do so only indirectly through kernel's API.
 
-Keep in mind, that this function runs in user level privilege however. To access kernel level privilege, you can do so only indirectly through kernel's API.
+In `project/src/main.cpp` you can also comment the `KernelTests::run_tests();` line to disable my own tests, it is located in `void main()` function.
