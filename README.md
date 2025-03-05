@@ -2,10 +2,13 @@
 This repository contains my kernel that I have built as part of the "Operating Systems 1" course at the University of Belgrade at the School of Electrical Engineering.
 
 This kernel has following important characteristics:
+- It is supposed to run on RISC-V CPU, specifically RV64IMA architecture.
+- It provides ABI that is used by C API, and C++ API that is implemented by using C API (it has layered architecture).
 - The kernel supports asynchronous preemption. Meaning it can change the current running thread with another thread uppon interrupt.
 - The threads share the CPU across the time, with timed interrupts, by utilizing Round Robin scheduling algorithm.
-- Every thread has two stacks, one for userspace, and another for kernel operations.
+- Every thread has two stacks, one for user level privilege, and another for kernel operations.
 - The kernel does all of this with a single CPU core.
+
 
 This kernel supports the following C API:
  
@@ -25,12 +28,20 @@ First you must clone this repository to your machine with `git clone https://git
 
 Second, make sure you are located in the directory of the cloned repository, so just execute `cd RISC-V-OS1-Kernel`
 
-Third, build the docker image that will contain all the tools necessary in order to run the kernel, you can do this with the following command `docker build -f .\main.dockerfile --tag risc-v-kernel .`.
+Third, build the docker image that will contain all the tools necessary in order to run the kernel, you can do this with the following command `docker build -f .\main.dockerfile --tag risc-v-kernel .`
 
-Fourth, start the docker container based on the previously built image, in a way that you can interact with its console `docker run -it risc-v-kernel`.
+Fourth, start the docker container based on the previously built image, in a way that you can interact with its console `docker run -it risc-v-kernel`
 
-Fifth, if you want to ever leave the kernel, just press `CTRL + A` and immediatelly after that press `X`
+Fifth, if you want to ever stop the kernel (by stopping QEMU), just press `CTRL + A` and immediatelly after that press `X`
 
-The docker image you have built, contains the necessary cross compilers to compile the code for RISC-V machine, even tho you will probably run this on x86 machine.
+The docker image you have built, based on that `dockerfile`, contains the necessary cross compilers to compile the code for RISC-V machine.
 
-And also it contains QEMU (open source machine emulator / virtualizer), through which you can run this kernel.
+And it also contains QEMU (open source machine emulator / virtualizer), through which you can run this kernel.
+
+By default, the tests that I have written will execute, and also the public tests that were used to test this kernel at home while developing it.
+
+If you want to change that, you have to provide your own `void userMain()` function, preferrably in `project/src/main.cpp`.
+
+And you will have to comment the one out (or change its signature name) located in: `project/tests/userMain.cpp`
+
+Keep in mind, that this function runs in user level privilege however. To access kernel level privilege, you can do so only indirectly through kernel's API.
