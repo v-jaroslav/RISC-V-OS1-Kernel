@@ -1,4 +1,4 @@
-// Uvezi simbol, za funkciju koja treba da obradi prekid, i tekuci kontekst.
+// Import external symbol, for function that is supposed to handle the interrupt, and symbol that represents the current context.
 .extern k_handle_ecall
 .extern k_current_context
 
@@ -6,14 +6,14 @@
 .type k_ecall_trap, @function
 
 k_ecall_trap:
-    // Predji na sistemski stek.
+    // Switch to the system kernel stack from user stack.
     csrw sscratch, x1
     ld x1, k_current_context
     sd sp, 0x08(x1)
     ld sp, 0x10(x1)
     csrr x1, sscratch
 
-    // Alociraj na steku prostor. Sacuvaj korisnicke registre na stek.
+    // Allocate space on the stack, and save the user registries on it.
     addi sp, sp, -240
 
     sd ra, 0x00(sp)
@@ -51,10 +51,10 @@ k_ecall_trap:
     sd gp, 0xe0(sp)
     sd tp, 0xe8(sp)
 
-    // Opsluzi sistemski poziv.
+    // Handle system call.
     call k_handle_ecall
 
-    // Restauriraj korisnicke registre sa steka. I dealociraj prostor na steku.
+    // Restore user registries from the stack, and deallocate the space on the stack.
     ld ra, 0x00(sp)
 
     ld s0, 0x08(sp)
@@ -92,7 +92,7 @@ k_ecall_trap:
 
     addi sp, sp, 240
 
-    // Predji na korisnicki stek, procitaj rezultat ecall poziva.
+    // Switch back to the user stack, and read the result of the ecall.
     csrw sscratch, x1
     ld x1, k_current_context
     sd sp, 0x10(x1)

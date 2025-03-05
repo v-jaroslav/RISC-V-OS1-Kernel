@@ -2,10 +2,10 @@
 .type k_restore_context, @function
 
 k_restore_context:
-    // Restauriraj sledece registre iz strukture Context.
+    // Retore the following registries from Context struct.
     ld ra, 0x00(a0)
 
-    // Procitaj sys_sp.
+    // Read sys_sp, sp that points to the kernel stack.
     ld sp, 0x10(a0)
 
     ld gp, 0x18(a0)
@@ -47,7 +47,7 @@ k_restore_context:
 
     ld a1, 0xf0(a0)
 
-    // U a0 (registar povratne vrednosti), pre nego sto se vratis, upisi vrednost 1, kako bi oznacio da se vracas iz restauracije konteksta.
-    // Ova funkcija ce da nas vrati na mesto gde bi se vratio poziv iz k_save_context-a, po uzoru na longjmp.
+    // To a0 (registry of return value), before you return, write value 1, so that you know that you are returning from context restauration.
+    // This function will return us back to where we would return from k_save_context, just like longjmp.
     lui a0, 0x0000000000000001
     ret

@@ -22,26 +22,26 @@ int Sem::free_sem(Sem* sem) {
 }
 
 void Sem::block() {
-    // Uzmi tekucu nit, postavi joj status da je suspendovana, i dodaj je u red suspendovanih niti.
+    // Take the current thread, let its status be suspended, and add it to the queue of suspended threads.
     TCB* suspended_tcb = current_tcb;
     suspended_tcb->status = TCBStatus::SUSPENDED;
     this->suspended.add_last(suspended_tcb);
 
-    // Uzmi neku novu nit, i uradi promenu konteksta.
+    // Take a new thread, and perform context switch.
     current_tcb = Scheduler::get_instance().next_tcb();
     yield(suspended_tcb, current_tcb);
 }
 
 int Sem::wait() {
-    // Uzmi tekucu vrednost semafora, smanji je za 1.
+    // Take the current value of semaphore, decrement it by 1.
     this->value = this->value - 1;
 
     if(this->value < 0) {
-        // Ako je sada vrednost manja od 0, blokiraj tekucu nit.
+        // If this value is now lesser than 0, block the current thread.
         this->block();
 
         if(current_tcb->interrupted) {
-            // Ukoliko se vracamo iz block-a, zato sto se semafor gasi, vrati gresku.
+            // In case the context was switched to this function, and we are about to return from it, which is in case of when semaphore is being freed, return error.
             return WAIT_FAIL;
         }
     }
@@ -50,11 +50,11 @@ int Sem::wait() {
 }
 
 int Sem::unblock() {
-    // Uzmi neku nit iz reda suspendovanih.
+    // Take some thread from suspended threads queue.
     TCB* tcb = this->suspended.take_first();
 
-    if(tcb) {
-        // Ako smo odblokirali nit, postavi joj interrupted zastavicu na true ako se semafor gasi, stavi je u red spremnih niti.
+    if (tcb) {
+        // In case we resumed thread, let its interrupted flag be true in case its semaphore is closing, and add it to the queue of ready threads.
         tcb->interrupted = this->closing;
         Scheduler::get_instance().put_tcb(tcb);
         return UNBLOCK_SUCCESS;
@@ -64,11 +64,11 @@ int Sem::unblock() {
 }
 
 int Sem::signal() {
-    // Uzmi tekucu vrednost semafora i uvecaj je za 1.
+    // Take the current value of semaphore, and increment it.
     this->value = this->value + 1;
 
     if(value <= 0) {
-        // Ukoliko je vrednost bila negativna, deblokiraj jednu nit.
+        // In case the value was negative, resume one thread.
         this->unblock();
     }
 
@@ -76,10 +76,10 @@ int Sem::signal() {
 }
 
 int Sem::close() {
-    // Postavi zastavicu da smo ugasili semafor.
+    // Set the flag that we have closed the semaphore.
     this->closing = true;
 
-    // Deblokiraj sve niti.
+    // Resume all threads.
     while(this->unblock() == UNBLOCK_SUCCESS);
     return CLOSE_SUCCESS;
 }

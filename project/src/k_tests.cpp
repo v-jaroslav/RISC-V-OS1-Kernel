@@ -11,7 +11,7 @@ static void print_array(uint64* arr = nullptr, size_t length = 0) {
 }
 
 void KernelTests::memory_test() {
-    // Za svaki niz od 8 elementa od po 8 bajtova neophodan je 1 ceo blok ako je velicina bloka 64B, alociramo tri bloka.
+    // For every array of 8 elements, where each element is 8 bytes, we need 1 single block, if the block is 64B, we allocate three blocks.
     uint64* arr1 = (uint64*)mem_alloc(sizeof(uint64) * 8);
     uint64* arr2 = (uint64*)mem_alloc(sizeof(uint64) * 8);
     uint64* arr3 = (uint64*)mem_alloc(sizeof(uint64) * 8);
@@ -28,11 +28,11 @@ void KernelTests::memory_test() {
     print_horizontal_line(35);
 
 
-    // Dealociramo prva dva niza, prva dva bloka, prva tri broja oba niza ce sadrzati polja FreeBlocks-a, spojice se.
+    // Deallocate first two arrays, so basically first two blocks. First three numbers of boths arrays will contain fields of FreeBlocks structure, and they will be merged.
     mem_free(arr2);
     mem_free(arr1);
 
-    // Za ovaj niz, neophodno je 3 bloka ako je blok 64B, time se on nece alocirati na prethodno oslobodjenom prostoru, vec iza poslednje alokacije.
+    // For this array, 3 blocks are necessary if the block is 64B, that way it wont be allocated on previously freed space, but after it.
     uint64* arr4 = (uint64*)mem_alloc(sizeof(uint64) * 17);
     for(int i = 0; i < 17; i++) {
         arr4[i] = 400 + i;
@@ -45,7 +45,7 @@ void KernelTests::memory_test() {
     print_horizontal_line(35);
 
 
-    // Za ovaj niz, neophodno je 2 bloka ako je velicina bloka 64B. Alocirace se na mesto prva dva oslobodjena niza.
+    // For this array, 2 blocks are necessary if the size of the block is 64B. It will be allocated in place of first two freed arrays.
     uint64* arr5 = (uint64*)mem_alloc(sizeof(uint64) * 16);
     for(int i = 0; i < 16; i++) {
         arr5[i] = 500 + i;
@@ -59,7 +59,7 @@ void KernelTests::memory_test() {
     print_horizontal_line(35);
 
 
-    // Dealociramo treci niz jedan blok, cetvrti niz tri bloka, i peti niz dva bloka.
+    // Deallocate third array (1 block), fourth array (3 blocks), fifth array (2 blocks).
     mem_free(arr3);
     mem_free(arr4);
     mem_free(arr5);
@@ -72,7 +72,7 @@ void KernelTests::memory_test() {
     print_horizontal_line(35);
 
 
-    // Testiranje preklopljenih C++ operatora.
+    // Tetst overloaded C++ operators.
     uint64* cpp_alloc = new uint64[15];
     for(int i = 0; i < 15; ++i) {
         cpp_alloc[i] = 600 + i;
@@ -108,17 +108,17 @@ namespace {
 }
 
 void KernelTests::threads_test() {
-    // Testiranje niti asinhrona/sinhrona promena konteksta.
+    // Test asynchronous/synchronous preemption.
     Thread s_thr(print_loop_standard, (void*)"+++ Standard Thread");
     Thread d_thr(print_loop_dispatched, (void*)"*** Dispatch Thread");
     CustomThread ct_thr;
 
-    // Pokreni niti.
+    // Start threads.
     s_thr.start();
     d_thr.start();
     ct_thr.start();
 
-    // Testiranje visestrukog cekanja.
+    // Test multiple waitings.
     s_thr.join();
     s_thr.join();
 
@@ -133,10 +133,10 @@ void KernelTests::threads_test() {
 static void synched_printing(void* args) {
     Semaphore* mutex = (Semaphore*)args;
 
-    // "Zakljucaj" kriticnu sekciju.
+    // Lock the critical section.
     mutex->wait();
 
-    // Neka kriticna sekcija.
+    // Some critical section...
     print_string("START: ", ' ');
     for(int i = 0; i < 10; i++) {
         print_uint64(i, ' ');
@@ -144,15 +144,15 @@ static void synched_printing(void* args) {
     }
     print_string(" :END");
 
-    // "Otkljucaj" kriticnu sekciju.
+    // Unlock the critical section.
     mutex->signal();
 }
 
 void KernelTests::semaphore_test() {
-    // Semafor za medjusobno iskljucenje.
+    // Semaphore for mutual exclusion.
     Semaphore mutex(1);
 
-    // Napravi 5 niti i pokreni ih.
+    // Create 5 threads and start them.
     Thread thread_array[5] = {Thread(synched_printing, &mutex),
                               Thread(synched_printing, &mutex),
                               Thread(synched_printing, &mutex),
@@ -163,7 +163,7 @@ void KernelTests::semaphore_test() {
         thread_array[i].start();
     }
 
-    // Sacekaj da se sve niti zavrse.
+    // Wait for all threads to finish.
     for(int i = 0; i < 5; i++) {
         thread_array[i].join();
     }
@@ -212,7 +212,7 @@ void KernelTests::time_sleep_test() {
 static void good_bye(void* args) {
     print_string("BEFORE THREAD EXIT");
 
-    // Ako radi thread_exit, print ispod ne treba da se izvrsi.
+    // If thread_exit works, the print below shouldn't execute.
     thread_exit();
 
     print_string("AFTER THREAD EXIT");
@@ -301,16 +301,13 @@ void KernelTests::console_io_test() {
 
 
 void KernelTests::run_tests() {
-    // Pokreni test za memoriju.
     memory_test();
 
-    // Pokreni testove za niti.
     threads_test();
     thread_exit_test();
     semaphore_test();
     time_sleep_test();
     periodic_thread_test();
 
-    // Pokreni test konzole.
     console_io_test();
 }

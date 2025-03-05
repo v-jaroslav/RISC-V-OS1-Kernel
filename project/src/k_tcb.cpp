@@ -6,10 +6,10 @@
 
 using namespace Kernel;
 
-// Glavna nit kernela, staticki kreirana.
+// Main thread of the kernel, statically allocated.
 TCB Kernel::main_tcb { { 0 }, nullptr, nullptr, false, nullptr, 0, DEFAULT_TIME_SLICE, TCBStatus::RUNNING, nullptr, nullptr, nullptr, nullptr };
 
-// Postavi da tekuci kontekst i tekuca nit pokazuju na glavnu main nit odnosno njen kontekst.
+// Remember that the current context and current thread should point to the main thread, aka its context.
 TCB* Kernel::current_tcb = &Kernel::main_tcb;
 Context* Kernel::k_current_context = &Kernel::main_tcb.context;
 
@@ -18,13 +18,13 @@ time_t volatile Kernel::timer_ticks = 0;
 
 TCB* Kernel::create_tcb(void (*body)(void* args), void* args, uint64* stack_space) {
     if(body && stack_space) {
-        // Ukoliko je prosledjena funkcija koju treba izvrsiti i prostor za njen stek, samo tada kreiramo nit.
+        // We create new thread, only if the function that should be executed is passed, and the space for its stack.
         TCB* new_tcb = (TCB*)MemoryAllocator::get_instance().alloc(to_blocks(sizeof(TCB)));
         if(!new_tcb) {
             return nullptr;
         }
 
-        // Postavi osnovne vrednosti polja TCB-a.
+        // Initialize the fields of the TCB.
         new_tcb->sleep_for = 0;
         new_tcb->time_slice = DEFAULT_TIME_SLICE;
         new_tcb->status = TCBStatus::INITIALIZING;
@@ -34,11 +34,11 @@ TCB* Kernel::create_tcb(void (*body)(void* args), void* args, uint64* stack_spac
         new_tcb->next = nullptr;
         new_tcb->prev = nullptr;
 
-        // Postavi prosledjen stek, kao korisnicki stek.
+        // Set the passed stack, as the user stack.
         new_tcb->usr_stack = stack_space;
         new_tcb->context.usr_sp = (uint64)stack_space;
 
-        // Alociraj kernel stek, i postavi ga.
+        // Allocate the kernel stack and set it.
         new_tcb->sys_stack = (uint64*)MemoryAllocator::get_instance().alloc(to_blocks(DEFAULT_STACK_SIZE));
         if(!new_tcb->sys_stack) {
             free_tcb(new_tcb);
@@ -46,17 +46,17 @@ TCB* Kernel::create_tcb(void (*body)(void* args), void* args, uint64* stack_spac
         }
         new_tcb->context.sys_sp = (uint64)&new_tcb->sys_stack[DEFAULT_STACK_SIZE / sizeof(uint64)];
 
-        // Postavi thread-pointer na 0, zbog plic funkcija.
+        // Set the thraed_pointer to 0, because of plic functions.
         new_tcb->context.tp = 0;
 
-        // Postavi pocetni sstatus, nasledjuje se od roditeljske niti, omoguci prekide svakako.
+        // Set the initial sstatus, it is inherited from the parent thread, enable interrupts regardless of that.
         __asm__ volatile ("csrr %0, sstatus" : "=r" (new_tcb->context.sstatus));
         new_tcb->context.sstatus = new_tcb->context.sstatus | (1 << 5);
 
-        // U context upisi gde se vracamo nakon prve restauracije konteksta nove niti.
+        // Write to the context where we are going back to after the first context restauration of this new thread.
         new_tcb->context.ra = (uint64)k_tcb_start;
 
-        // Napravi semafor za join.
+        // Create new semamphore for join operation.
         new_tcb->join_sem = Kernel::Sem::create_sem(0);
         if(!new_tcb->join_sem) {
             free_tcb(new_tcb);
@@ -71,7 +71,7 @@ TCB* Kernel::create_tcb(void (*body)(void* args), void* args, uint64* stack_spac
 
 void Kernel::free_tcb(TCB* tcb) {
     if(tcb && tcb != &main_tcb) {
-        // Dealociraj korisnicki stek, kernel stek, semafor pa TCB.
+        // Deallocate the user stack, kernel stack, and semaphore, after that also TCB.
         MemoryAllocator::get_instance().free((void*)((uint64)tcb->usr_stack - DEFAULT_STACK_SIZE));
         tcb->usr_stack = nullptr;
 
@@ -86,20 +86,20 @@ void Kernel::free_tcb(TCB* tcb) {
 }
 
 extern "C" void Kernel::k_tcb_run_wrapper() {
-    // Porkreni nit sa datim argumentima, kad zavrsi pozovi sistemski poziv da se nit zavrsi.
+    // Start the thread with the given arguments, once it is done, call the system call to shut down the thread.
     current_tcb->body(current_tcb->args);
     thread_exit();
 }
 
 void Kernel::yield(TCB* old_tcb, TCB* new_tcb) {
     if(old_tcb && k_save_context(&old_tcb->context) != 0) {
-        // Ako je prosledjen old_tcb sacuvaj kontekst, ako je povratna vrednost razlicita od nule onda se vracamo ovde preko restauracije konteksta.
+        // In case old_tcb is passed, save its context, in case the return value is not 0, then we are returning from context restauration.
         timer_ticks = 0;
         return;
     }
 
     if (new_tcb) {
-        // Ako je prosledjen new_tcb postavi status da se izvrsava, restauriraj kontekst. Ovde smo dosli ako smo zaista sacuvali kontekst old_tcb-a.
+        // If new_tcb is passed, set its status that its running, restore context. We came here if we truly saved context of old_tcb.
         new_tcb->status = TCBStatus::RUNNING;
         k_current_context = &current_tcb->context;
         k_restore_context(&new_tcb->context);
@@ -109,11 +109,11 @@ void Kernel::yield(TCB* old_tcb, TCB* new_tcb) {
 void Kernel::dispatch() {
     TCB* previous_tcb = current_tcb;
     if(previous_tcb && previous_tcb->status == TCBStatus::RUNNING) {
-        // Ako imamo prethodnu nit, i ako se nije zavrsila, vrati je u scheduler.
+        // If we have previous thread, and if it is not done, add it back to the scheduler.
         Scheduler::get_instance().put_tcb(previous_tcb);
     }
     else if (previous_tcb && previous_tcb->status == TCBStatus::TERMINATING) {
-        // Ako se zavrsila, dealociraj je, ali pre toga, zatvori semafor date niti.
+        // If it did finish, deallocate it, but before that, close its semaphore for join operations.
         if(previous_tcb->join_sem) {
             previous_tcb->join_sem->close();
         }
@@ -121,7 +121,7 @@ void Kernel::dispatch() {
         previous_tcb = nullptr;
     }
 
-    // Izaberi drugu neku nit iz scheduler-a. Promeni kontekst.
+    // Pick different thread from scheduler, switch context.
     current_tcb = Scheduler::get_instance().next_tcb();
     yield(previous_tcb, current_tcb);
 }

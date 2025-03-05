@@ -1,22 +1,22 @@
-// Poravnaj prekidnu rutinu na 4 bajta.
+// Align the interrupt on 4 bytes.
 .align 4
 
-// Izvezi simbol, za interrupt vector tabelu.
+// Export the symbol, for the interrupt vector table.
 .global k_intr_table
 .type k_intr_table, @function
 
-// Uvezi simbole prekidnih rutina.
+// Import the symbols for interrupt handlers.
 .extern k_ecall_trap
 .extern k_hardware_trap
 
 k_intr_table:
-    // Ulaz za ecall / exception-e.
+    // Entry for ecall / exceptions.
     jal zero, k_ecall_trap
 
-    // Ulaz za tajmer.
+    // Entry for timer interrupt.
     .org k_intr_table + 1 * 4
     jal zero, k_hardware_trap
 
-    // Ulaz za konzolu.
+    // Entry for console interrupt.
     .org k_intr_table + 9 * 4
     jal zero, k_hardware_trap

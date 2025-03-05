@@ -2,10 +2,10 @@
 .type k_save_context, @function
 
 k_save_context:
-    // Sacuvaj sledece registre u tekuci kontekst.
+    // Save the following registries to the current context.
     sd ra, 0x00(a0)
 
-    // Sacuvaj sys_sp.
+    // Save sp that points to kernel stack (sys_sp).
     sd sp, 0x10(a0)
 
     sd gp, 0x18(a0)
@@ -40,17 +40,17 @@ k_save_context:
     sd a2, 0xe8(a0)
     sd a1, 0xf0(a0)
 
-    // Sacuvaj SEPC preko a1.
+    // Save SEPC through a1 register.
     csrr a1, sepc
     sd a1, 0x100(a0)
 
-    // Sacuvaj SSTATUS preko a1.
+    // Save SSTATUS through a1 register.
     csrr a1, sstatus
     sd a1, 0x108(a0)
 
-    // Ucitaj nazad sacuvan a1.
+    // Read back already saved a1.
     ld a1, 0xf0(a0)
 
-    // U a0 (registar povratne vrednosti), pre nego sto se vratis, upisi vrednost 0, kako bi oznacio da se zaista vracas iz ove funkcije. Uzor na setjmp funkciju.
+    // To a0 (registry of return value), before you return back, write 0, so that you know that you are indeed returning from this function. Inspired by setjmp function.
     lui a0, 0x0000000000000000
     ret

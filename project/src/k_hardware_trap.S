@@ -1,4 +1,4 @@
-// Uvezi simbol, za funkciju koja treba da obradi prekid, i tekuci kontekst.
+// Import symbol for function that is supposed to handle the hardware interrupt, and the symbol that represents the current context.
 .extern k_handle_hardware
 .extern k_current_context
 
@@ -6,14 +6,14 @@
 .type k_hardware_trap, @function
 
 k_hardware_trap:
-    // Predji na sistemski stek.
+    // Switch to the kernel stack from user stack.
     csrw sscratch, x1
     ld x1, k_current_context
     sd sp, 0x08(x1)
     ld sp, 0x10(x1)
     csrr x1, sscratch
 
-    // Alociraj na steku prostor. Sacuvaj korisnicke registre na stek.
+    // Allocate space on the stack, and save user registries on it.
     addi sp, sp, -240
 
     sd ra, 0x00(sp)
@@ -51,10 +51,10 @@ k_hardware_trap:
     sd gp, 0xe0(sp)
     sd tp, 0xe8(sp)
 
-    // Opsluzi prekid hardvera.
+    // Handle the hardware interrupt.
     call k_handle_hardware
 
-    // Restauriraj korisnicke registre sa steka. I dealociraj prostor na steku.
+    // Restore the user registries from the stack, and deallocate the space on the kernel stack.
     ld ra, 0x00(sp)
 
     ld s0, 0x08(sp)
@@ -92,7 +92,7 @@ k_hardware_trap:
 
     addi sp, sp, 240
 
-    // Predji na korisnicki stek.
+    // Switch back to the user stack.
     csrw sscratch, x1
     ld x1, k_current_context
     sd sp, 0x10(x1)

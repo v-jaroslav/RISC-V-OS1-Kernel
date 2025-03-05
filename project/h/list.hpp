@@ -74,7 +74,7 @@ void List<T>::add_first(T* t) {
     }
 
     if(t) {
-        // Ako lista nije prazna, nov element treba da pokazuje na glavu, a glava na nov element, nov element postaje glava.
+        // In case list is not empty, the new element has to point to head, and head back to the new element, the new element becomes the new head.
         t->prev = nullptr;
         t->next = this->head;
         this->head->prev = t;
@@ -90,7 +90,7 @@ void List<T>::add_last(T* t) {
     }
 
     if(t) {
-        // Ako lista nije prazna, nov element treba da pokazuje na rep, a rep na nov element, nov element postaje rep.
+        // If the list is not empty, new elmeent has to point back to the tail, the tail has to point forward to the new element, the new element becomes the tail.
         t->next = nullptr;
         t->prev = this->tail;
         this->tail->next = t;
@@ -103,15 +103,15 @@ T* List<T>::take_first() {
     T* t = this->head;
 
     if(!this->is_empty()) {
-        // Pomeri glavu na sledeci element.
+        // Advance the head to the next element.
         this->head = this->head->next;
 
         if(!this->head) {
-            // Ako je to bio jedini element, postavi rep da pokazuje na nista takodje.
+            // If that was the only element, then let the tail also point to nullptr.
             this->tail = nullptr;
         }
         else {
-            // Ako nije bio poslednji element, glava liste ne treba da ima prethodni element.
+            // If that wasn't the last element, then the head of the list shouldn't have the previous element, as head is always first element.
             this->head->prev = nullptr;
         }
     }
@@ -125,15 +125,15 @@ T* List<T>::take_last() {
     T* t = this->tail;
 
     if(!this->is_empty()) {
-        // Pomeri tail nazad.
+        // Push tail backwards.
         this->tail = this->tail->prev;
 
         if(!this->tail) {
-            // Ako je to bio jedini element, head postavi na nullptr.
+            // If it was the last element, let the head point to the null as well.
             this->head = nullptr;
         }
         else {
-            // Ako nije bio poslednji element, rep liste ne treba da ima sledeci element.
+            // In case it wasn't the last element, we know that tail shouldn't have the next element.
             this->tail->next = nullptr;
         }
     }

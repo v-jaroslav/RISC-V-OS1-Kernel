@@ -33,7 +33,8 @@ void print_uint64(uint64 number, char end) {
 
     console_lock();
     while(tens) {
-        // Celobrojno podeli broj sa tens, uzmi ostatak pri deljenju sa 10, podeli kasnije tens sa 10 kako bi uzimao cifre s leva na desno.
+        // Perform integer division on "number" with "tens", and take remainder of it when dividing it with 10, so that we can take the digits from left to right.
+        // Also divide the tens by 10, so that we move on to the next digit.
         Console::putc('0' + (number / tens) % 10);
         tens = tens / 10;
     }
@@ -59,7 +60,7 @@ char* get_string(int max_length) {
         str[i] = Console::getc();
         if((int)str[i] == DELETE_KEY) {
             if(i > 0) {
-                // \b \b ce obrisati poslednje unet karakter.
+                // "\b \b" will delete the last entered character.
                 Console::putc('\b');
                 Console::putc(' ');
                 Console::putc('\b');

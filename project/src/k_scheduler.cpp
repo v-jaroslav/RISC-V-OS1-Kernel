@@ -6,7 +6,7 @@ using namespace Kernel;
 
 static void flush_putc_loop(void* args) {
     while(true) {
-        // Sluzi za nit koja treba da salje karaktere konzoli.
+        // This is used by system thread, that will send characters to the console, it always tries to execute thread_dispatch, so that other threads can run.
         Kernel::flush_putc_buffer();
         thread_dispatch();
     }
@@ -14,7 +14,7 @@ static void flush_putc_loop(void* args) {
 
 void Scheduler::initialize() {
     if(!this->flush_tcb) {
-        // Kreiraj internu nit jezgra za flushovanje putc buffera.
+        // Create internal system thread for flushing putc console buffer.
         thread_create((thread_t*)&this->flush_tcb, flush_putc_loop, nullptr);
     }
 }

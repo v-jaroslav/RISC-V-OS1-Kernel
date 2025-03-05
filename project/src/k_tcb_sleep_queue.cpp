@@ -21,19 +21,19 @@ void TCBSleepQueue::put_to_sleep(TCB* tcb, time_t sleep_for) {
     TCB* current = this->head;
 
     while(current) {
-        // Prodji kroz TCB-ove u redu, i sabiraj broj relativnih tickova koje oni treba da spavaju.
+        // Go through TCBs in the queue, and sum the number of relative ticks that they should sleep for.
         total_time += current->sleep_for;
 
         if(tcb->sleep_for >= total_time) {
-            // Ako nov TCB treba da spava duze od dosada sabranog vremena, nastavi da prolazis kroz red.
+            // In case the new TCB should sleep longer than so far summed time, then continue going through the queue.
             current = current->next;
         }
         else {
-            // Ako ce TCB spavati krace od sume vremena, stavljamo ga kao prethodnika poslednje posecenog TCB-a.
-            // Od sume vremena, oduzimamo vreme spavanja poslednjeg posecenog TCB-a, cilj je pamtiti razliku vremena spavanja u odnosu na prethodnika.
+            // In case the TCB should sleep less than so far sumemd time, then we are going to store it as predecessor of the last visited TCB.
+            // From the sum of time, we subtract the time the last visited TCB would take to sleep, the goal is to remember the time difference compared to the predecessor.
             total_time -= current->sleep_for;
 
-            // Ulancaj nov TCB u red, sa relativnim vremenom spavanja.
+            // Chain the new TCB to the queue, with relative sleeping time.
             tcb->next = current;
             tcb->prev = current->prev;
             if(tcb->prev) {
@@ -44,7 +44,7 @@ void TCBSleepQueue::put_to_sleep(TCB* tcb, time_t sleep_for) {
                 this->head = tcb;
             }
 
-            // Azuriranje sledbenika novog TCB-a, jer se unelo dodatno vreme u red spavanja.
+            // Update the successor of the new TCB, because we have added new time to the sleeping queue.
             current->sleep_for -= tcb->sleep_for;
             current->prev = tcb;
             break;
@@ -52,7 +52,7 @@ void TCBSleepQueue::put_to_sleep(TCB* tcb, time_t sleep_for) {
     }
 
     if(!tcb->next) {
-        // Ako TCB nema sledbenika, znaci da nije dodat u red.
+        // In case the current TCB does not have successor, that means it hasn't been added to the queue.
         tcb->sleep_for -= total_time;
         this->add_last(tcb);
     }
@@ -60,11 +60,11 @@ void TCBSleepQueue::put_to_sleep(TCB* tcb, time_t sleep_for) {
 
 void TCBSleepQueue::timer_tick() {
     if(!this->is_empty()) {
-        // Ako red za spavanje nije prazan, uzmi prvi TCB, i smanji broj tick-ova za spavanje.
+        // In case the queue for sleeping isn't empty, take the first TCB, and decrement its ticks for sleeping by one.
         this->peek_first()->sleep_for--;
 
         while(!this->is_empty() && this->peek_first()->sleep_for <= 0) {
-            // Dok god red nije prazan, i dok god trenutnom prvom TCB-u je isteklo vreme spavanja, uzmi taj TCB i stavi ga u scheduler.
+            // As long as the queue is not empty, and as long as the time of the first TCB has expired, take that TCB and add it to the scheduler.
             Scheduler::get_instance().put_tcb(this->take_first());
         }
     }

@@ -1,9 +1,10 @@
 # RISC-V-OS1-Kernel
-This repository contains my kernel that I have built as part of the "Operating Systems 1" course at the University of Belgrade at the School of Electrical Engineering.
+This repository contains my kernel that I have built as part of the "Operating Systems 1" course during my 2nd year at the University of Belgrade at the School of Electrical Engineering.
 
 This kernel has following important characteristics:
 - It is running on RISC-V CPU, specifically RV64IMA architecture.
 - It provides ABI that is used by C API, and C++ API that is implemented by using C API (it has layered architecture).
+- It utilizes Best-Fit algorithm for memory allocation.
 - The kernel supports asynchronous preemption, meaning it can change the current running thread with another thread uppon interrupt (at any time).
 - The threads share the CPU across the time, with timed interrupts, by utilizing Round Robin scheduling algorithm.
 - Every thread has two stacks, one for the user level privilege, and another for kernel operations.

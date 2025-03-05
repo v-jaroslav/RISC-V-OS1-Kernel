@@ -21,20 +21,20 @@ public:
 
 template<typename T, int size>
 int Queue<T, size>::get_length() {
-    // Vraca se broj elemenata u red-u.
+    // Return the count of elements in queue.
     return this->count;
 }
 
 template<typename T, int size>
 int Queue<T, size>::get_capacity() {
-    // Vraca se kapacitet, sablonski parametar.
+    // Return the capacity of the queue, which is basically the template argument.
     return size;
 }
 
 template<typename T, int size>
 T Queue<T, size>::get() {
     if(this->count > 0) {
-        // Po principu kruznog bafera se uzima element.
+        // Based on circular buffer we are taking elements from it.
         T t = this->buffer[this->head];
         this->head = (this->head + 1) % size;
         this->count--;
@@ -46,7 +46,7 @@ T Queue<T, size>::get() {
 template<typename T, int size>
 void Queue<T, size>::put(T t) {
     if(this->count < size) {
-        // Po principu kruznog bafera se dodaje element.
+        // Based on circular buffer we are adding element.
         this->buffer[this->tail] = t;
         this->tail = (this->tail + 1) % size;
         this->count++;

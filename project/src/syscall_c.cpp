@@ -23,7 +23,7 @@ int thread_create(thread_t* handle, void(*start_routine)(void*), void* arg) {
     if(handle && start_routine) {
         uint64* stack_space = (uint64*)mem_alloc(DEFAULT_STACK_SIZE);
         if(stack_space) {
-            // Nit cemo kreirati, samo ukoliko smo uspesno napravili stek, i ako handle i start_routine pokazuju na nesto.
+            // We will create thread, only if we have successfully created a stack, and if handle and start_routine are pointing to something.
             result_code = (int)k_system_call(Kernel::CREATE_THREAD_CODE, (uint64)handle, (uint64)start_routine, (uint64)arg, (uint64)&stack_space[DEFAULT_STACK_SIZE / sizeof(uint64)]);
         }
     }
@@ -41,7 +41,7 @@ void thread_dispatch() {
 
 void thread_join(thread_t handle) {
     if(handle) {
-        // Radi join, samo ukoliko zaista handle pokazuje na nesto.
+        // Perform join, only if handle points to something.
         k_system_call(Kernel::THREAD_JOIN_CODE, (uint64)handle);
     }
 }
@@ -49,7 +49,7 @@ void thread_join(thread_t handle) {
 
 int sem_open(sem_t* handle, unsigned init) {
     if(handle) {
-        // Kreiraj semafor, samo ako imas gde da smestis rucku.
+        // Create semaphore, only if you have location where to store the handle of it.
         return (int)k_system_call(Kernel::SEM_OPEN_CODE, (uint64)handle, (uint64)init);
     }
     return Kernel::FAILED_SYSCALL;
@@ -57,7 +57,7 @@ int sem_open(sem_t* handle, unsigned init) {
 
 int sem_close(sem_t handle) {
     if(handle) {
-        // Zatvori semafor, samo ukoliko handle pokazuje na nesto.
+        // Close the semaphore, only if handle points to something.
         return (int)k_system_call(Kernel::SEM_CLOSE_CODE, (uint64)handle);
     }
     return Kernel::FAILED_SYSCALL;
@@ -65,7 +65,7 @@ int sem_close(sem_t handle) {
 
 int sem_wait(sem_t id) {
     if(id) {
-        // Uradi operaciju wait nad semaforom, samo ako handle zaista pokazuje na nesto.
+        // Perform operation wait on semaphore, only if handle points to something.
         return (int)k_system_call(Kernel::SEM_WAIT_CODE, (uint64)id);
     }
     return Kernel::FAILED_SYSCALL;
@@ -73,7 +73,7 @@ int sem_wait(sem_t id) {
 
 int sem_signal(sem_t id) {
     if(id) {
-        // Uradi operaciju signal nad semaforom, samo ako handle zaista pokazuje na nesto.
+        // Perform signal operation on semaphore, only if handle really points to something.
         return (int)k_system_call(Kernel::SEM_SIGNAL_CODE, (uint64)id);
     }
     return Kernel::FAILED_SYSCALL;
@@ -82,7 +82,7 @@ int sem_signal(sem_t id) {
 
 int time_sleep(time_t ticks) {
     if(ticks > 0) {
-        // Radi spavanje, samo ako bi trajalo minimum jedan vremenski takt.
+        // Perform sleep, only if it would last at least 1 tick.
         return (int)k_system_call(Kernel::TIME_SLEEP_CODE, ticks);
     }
     return Kernel::FAILED_SYSCALL;
