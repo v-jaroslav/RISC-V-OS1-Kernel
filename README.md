@@ -5,8 +5,10 @@ This kernel supports the following C API:
  
 | System Call Code |       Signature                     | Explanation                                                                                                                                                                                      |
 |------------------|-------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| 0x01             |    void* mem_alloc (size_t size);   | Allocated at least `size` bytes of memory, rounded up to, and alligned with blocks of size `MEM_BLOCK_SIZE`, returns null if there is not enough memory.                                         |
-| 0x02             |    int mem_free (void*);            | Frees the memory that was previously allocated with mem_alloc (the argument must be the one that was returned from mem_alloc), returns 0 if operation was successful, otherwise negative value.  |                    
+| 0x01             |    void* mem_alloc (size_t size);   | Allocate at least `size` bytes of memory, rounded up to and alligned with blocks of size `MEM_BLOCK_SIZE`, returns pointer to allocated memory, or null on failure.                              |
+| 0x02             |    int mem_free (void*);            | Frees the memory that was previously allocated with mem_alloc (the argument must be pointer returned from mem_alloc), returns 0 if operation was successful, otherwise negative value.           |
+| 0x11             |    class _thread; <br> typedef _thread* thread_t; <br> <br> int thread_create ( thread_t* handle, void(*start_routine)(void*), void* arg ); | 
+
 
 
 
