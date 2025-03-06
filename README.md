@@ -10,6 +10,7 @@ This kernel has following important characteristics:
 - Every thread has two stacks, one for the user level privilege, and another for kernel operations.
 - It supports standard input / output through UART protocol.
 - It suuports semaphores, a primitive for synchronization, and many other things which you can checkout in the table below. 
+- It has protection against executing privileged instructions in user mode.
 - The kernel does all of this with a single CPU core.
 
 
@@ -30,6 +31,7 @@ This kernel has following important characteristics:
 | 0x31             | typedef unsigned long time_t; <br> int time_sleep(time_t);                                                                            | Suspend the currently running thread for specific number of internal time ticks. On success 0 is returned, otherwise a negative value is returned.                                                                                                |
 | 0x41             | const int EOF = -1; <br> char getc();                                                                                                 | Read one character from input character buffer of the console, in case the buffer is empty, suspend the currently running thread until some character shows up. The character that was read is returned, on error `EOF` is returned.              |
 | 0x42             | void putc(char);                                                                                                                      | Print specific character to the console                                                                                                                                                                                                           |
+| 0xFF             | int set_user_mode();                                                                                                                  | Switch to user privilege mode from kernel privilege mode, and to user privilege mode from user privilege  mode, used for internal purposes, for user it's pretty much useless.                                                                    | 
 
 
 ## This kernel suppports the following C++ API:
@@ -90,6 +92,11 @@ class Console {
 public:
     static char getc();
     static void putc(char);
+    
+    // Extended C++ API, this was added for my own purposes, outside of the project specification.
+    static void print_string(const char* message="", char end='\n');
+    static void print_uint64(uint64 number=0, char end='\n');
+    static char* get_string(int max_length=255);
 };
 ```
 
@@ -114,8 +121,12 @@ By default, the tests that I have written will execute, and also the public test
 
 If you want to change that, you have to provide your own `void userMain()` function, preferrably in `project/src/main.cpp`. 
 
-And you will have to comment out already given definition for such function (or change its name/signature) at `project/tests/userMain.cpp`
+There you can already see commented out `void userMain() { ... }` example function, if you uncomment it, that one will run instead of the public tests given by faculty.
+
+And that is simply because I have set the `void userMain() { ... }` that is defined by faculty to be weak symbol.
 
 Keep in mind, that this function runs at user level privilege. To access kernel level privilege, you can do so only indirectly through kernel's API.
 
-In `project/src/main.cpp` you can also comment the `KernelTests::run_tests();` line to disable my own tests, it is located in `void main()` function.
+In `project/src/main.cpp` you can also set the `RUN_KERNEL_TESTS` to 0, in order to not run the kernel tests that are written by me.
+
+And also, if you are wondering why the kernel crashes (panics) in the last public test. That is because it should. In that test, the user is trying to execute privileged instruction from the user mode, which is not allowed! And that's a protection mechanism against that!

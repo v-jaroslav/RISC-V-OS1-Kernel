@@ -1,6 +1,6 @@
 #pragma once
 
-namespace KernelTests 
+namespace Kernel::Tests 
 {
     void memory_test();
 

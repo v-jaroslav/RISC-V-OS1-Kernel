@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../lib/hw.h"
+#include "hw.h"
 
 namespace Kernel {
     typedef uint32 blocks_t;
@@ -13,7 +13,7 @@ namespace Kernel {
             blocks_t n_blocks;
         };
 
-        // Pointers to the free blocks, and evidence table that keeps track of number of used blocks for each memory allocation.
+        // Pointers to the freeblocks linkedlist that keeps track of which blocks are free, and the allocation table, that keeps track of how many blocks were allocated for each memory allocation.
         FreeBlocks* fb_head;
         blocks_t* alloc_table;
 

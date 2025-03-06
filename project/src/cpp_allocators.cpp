@@ -1,4 +1,4 @@
-#include "../h/syscall_cpp.hpp"
+#include "syscall_cpp.hpp"
 
 void* operator new(size_t bytes) {
     return mem_alloc(bytes);

@@ -1,6 +1,6 @@
 namespace Kernel {
     // Success/failure codes.
-    constexpr int SUCCESS_SYSCALL = 0;
+    constexpr int SUCCESS_SYSCALL =  0;
     constexpr int FAILED_SYSCALL  = -1;
 
     // System call codes (important for ABI)
@@ -22,5 +22,6 @@ namespace Kernel {
     constexpr int GET_C_CODE = 0x41;
     constexpr int PUT_C_CODE = 0x42;
 
+    // Additional system call, to switch to user mode.
     constexpr int USER_MODE_CODE = 0xFF;
 }

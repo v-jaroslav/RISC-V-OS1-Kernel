@@ -47,7 +47,7 @@ CFLAGS += -march=rv64ima -mabi=lp64 -mcmodel=medany -mno-relax
 CFLAGS += -fno-omit-frame-pointer -ffreestanding -fno-common
 CFLAGS += $(shell ${CC} -fno-stack-protector -E -x c /dev/null >/dev/null 2>&1 && echo -fno-stack-protector)
 CFLAGS += ${DEBUG_FLAG}
-#CFLAGS += -I./${DIR_LIBS} -I./${DIR_INC}
+CFLAGS += -I./${DIR_LIBS} -I./${DIR_INC}
 CFLAGS += -MMD -MP -MF"${@:%.o=%.d}"
 
 # Disable PIE when possible (for Ubuntu 16.10 toolchain)
@@ -63,7 +63,7 @@ CXXFLAGS += -nostdlib -std=c++11
 CXXFLAGS += -march=rv64ima -mabi=lp64 -mcmodel=medany -mno-relax
 CXXFLAGS += -fno-omit-frame-pointer -ffreestanding -fno-common
 CXXFLAGS += -fno-rtti -fno-threadsafe-statics
-#CXXFLAGS += -I./${DIR_LIBS} -I./${DIR_INC}
+CXXFLAGS += -I./${DIR_LIBS} -I./${DIR_INC}
 CXXFLAGS += $(shell ${CXX} -fno-stack-protector -E -x c /dev/null >/dev/null 2>&1 && echo -fno-stack-protector)
 CXXFLAGS += ${DEBUG_FLAG}
 CXXFLAGS += -MMD -MP -MF"${@:%.o=%.d}"

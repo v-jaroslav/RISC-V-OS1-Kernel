@@ -1,4 +1,4 @@
-#include "../h/syscall_cpp.hpp"
+#include "syscall_cpp.hpp"
 
 Semaphore::Semaphore(unsigned init) {
     sem_open(&this->myHandle, init);

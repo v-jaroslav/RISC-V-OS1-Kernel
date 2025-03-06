@@ -21,7 +21,7 @@ public:
 
 template<typename T, int size>
 int Queue<T, size>::get_length() {
-    // Return the count of elements in queue.
+    // Return the count of elements in the queue.
     return this->count;
 }
 
@@ -33,20 +33,22 @@ int Queue<T, size>::get_capacity() {
 
 template<typename T, int size>
 T Queue<T, size>::get() {
-    if(this->count > 0) {
-        // Based on circular buffer we are taking elements from it.
+    if (this->count > 0) {
+        // Based on circular buffer we are taking elements from it, we read from head index, that is pushed forward circularly.
         T t = this->buffer[this->head];
         this->head = (this->head + 1) % size;
         this->count--;
         return t;
     }
+
+    // If we don't have element to return, return default T().
     return T();
 }
 
 template<typename T, int size>
 void Queue<T, size>::put(T t) {
-    if(this->count < size) {
-        // Based on circular buffer we are adding element.
+    if (this->count < size) {
+        // Based on circular buffer we are adding element, we store the element to tail, which is pushed circularly.
         this->buffer[this->tail] = t;
         this->tail = (this->tail + 1) % size;
         this->count++;

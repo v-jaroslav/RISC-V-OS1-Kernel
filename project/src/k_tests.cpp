@@ -1,16 +1,26 @@
-#include "../h/k_tests.hpp"
-#include "../h/syscall_cpp.hpp"
-#include "../h/console_lib.hpp"
+#include "k_tests.hpp"
+#include "syscall_cpp.hpp"
 
-static void print_array(uint64* arr = nullptr, size_t length = 0) {
-    for(size_t i = 0; i < length; i++) {
-        print_uint64((uint64)&arr[i], ':');
-        print_uint64(arr[i]);
+
+// Static (internal linkage) helper functions. They aren't in the Console C++ API class because it's kind of expected for user to code his own versions if he needs them, as they are specific.
+static void print_uint64_array(uint64* arr, size_t length) {
+    // Print "address: value" on new line for every element in the array.
+    for (size_t i = 0; i < length; ++i) {
+        Console::print_uint64((uint64)&arr[i], ':');
+        Console::print_uint64(arr[i]);
     }
-    print_string();
+    Console::print_string();
 }
 
-void KernelTests::memory_test() {
+static void print_horizontal_line(int length, char end = '\n') {
+    for (int i = 0; i < length; ++i) {
+        Console::putc('-');
+    }
+    Console::putc(end);
+}
+
+
+void Kernel::Tests::memory_test() {
     // For every array of 8 elements, where each element is 8 bytes, we need 1 single block, if the block is 64B, we allocate three blocks.
     uint64* arr1 = (uint64*)mem_alloc(sizeof(uint64) * 8);
     uint64* arr2 = (uint64*)mem_alloc(sizeof(uint64) * 8);
@@ -22,9 +32,9 @@ void KernelTests::memory_test() {
         arr3[i] = 300 + i;
     }
 
-    print_array(arr1, 8);
-    print_array(arr2, 8);
-    print_array(arr3, 8);
+    print_uint64_array(arr1, 8);
+    print_uint64_array(arr2, 8);
+    print_uint64_array(arr3, 8);
     print_horizontal_line(35);
 
 
@@ -38,10 +48,10 @@ void KernelTests::memory_test() {
         arr4[i] = 400 + i;
     }
 
-    print_array(arr1, 8);
-    print_array(arr2, 8);
-    print_array(arr3, 8);
-    print_array(arr4, 17);
+    print_uint64_array(arr1, 8);
+    print_uint64_array(arr2, 8);
+    print_uint64_array(arr3, 8);
+    print_uint64_array(arr4, 17);
     print_horizontal_line(35);
 
 
@@ -51,11 +61,11 @@ void KernelTests::memory_test() {
         arr5[i] = 500 + i;
     }
 
-    print_array(arr1, 8);
-    print_array(arr2, 8);
-    print_array(arr3, 8);
-    print_array(arr4, 17);
-    print_array(arr5, 16);
+    print_uint64_array(arr1, 8);
+    print_uint64_array(arr2, 8);
+    print_uint64_array(arr3, 8);
+    print_uint64_array(arr4, 17);
+    print_uint64_array(arr5, 16);
     print_horizontal_line(35);
 
 
@@ -64,11 +74,11 @@ void KernelTests::memory_test() {
     mem_free(arr4);
     mem_free(arr5);
 
-    print_array(arr1, 8);
-    print_array(arr2, 8);
-    print_array(arr3, 8);
-    print_array(arr4, 17);
-    print_array(arr5, 16);
+    print_uint64_array(arr1, 8);
+    print_uint64_array(arr2, 8);
+    print_uint64_array(arr3, 8);
+    print_uint64_array(arr4, 17);
+    print_uint64_array(arr5, 16);
     print_horizontal_line(35);
 
 
@@ -77,11 +87,11 @@ void KernelTests::memory_test() {
     for(int i = 0; i < 15; ++i) {
         cpp_alloc[i] = 600 + i;
     }
-    print_array(cpp_alloc, 15);
+    print_uint64_array(cpp_alloc, 15);
     print_horizontal_line(35);
 
     delete[] cpp_alloc;
-    print_array(cpp_alloc, 15);
+    print_uint64_array(cpp_alloc, 15);
     print_horizontal_line(35);
 }
 
@@ -89,13 +99,13 @@ void KernelTests::memory_test() {
 namespace {
     void print_loop_standard(void* args) {
         for(int i = 0; i < 2000; i++) {
-            print_string((char*)args);
+            Console::print_string((char*)args);
         }
     }
 
     void print_loop_dispatched(void* args) {
         for(int i = 0; i < 2000; i++) {
-            print_string((char*)args);
+            Console::print_string((char*)args);
             Thread::dispatch();
         }
     }
@@ -107,7 +117,7 @@ namespace {
     };
 }
 
-void KernelTests::threads_test() {
+void Kernel::Tests::threads_test() {
     // Test asynchronous/synchronous preemption.
     Thread s_thr(print_loop_standard, (void*)"+++ Standard Thread");
     Thread d_thr(print_loop_dispatched, (void*)"*** Dispatch Thread");
@@ -137,18 +147,18 @@ static void synched_printing(void* args) {
     mutex->wait();
 
     // Some critical section...
-    print_string("START: ", ' ');
+    Console::print_string("START: ", ' ');
     for(int i = 0; i < 10; i++) {
-        print_uint64(i, ' ');
+        Console::print_uint64(i, ' ');
         thread_dispatch();
     }
-    print_string(" :END");
+    Console::print_string(" :END");
 
     // Unlock the critical section.
     mutex->signal();
 }
 
-void KernelTests::semaphore_test() {
+void Kernel::Tests::semaphore_test() {
     // Semaphore for mutual exclusion.
     Semaphore mutex(1);
 
@@ -179,13 +189,13 @@ namespace {
 
     void good_night(void* args) {
         SleepParams* sp = (SleepParams*)args;
-        print_string(sp->msg_1);
+        Console::print_string(sp->msg_1);
         time_sleep(sp->sleep_time);
-        print_string(sp->msg_2);
+        Console::print_string(sp->msg_2);
     }
 }
 
-void KernelTests::time_sleep_test() {
+void Kernel::Tests::time_sleep_test() {
     SleepParams a_params = {"THREAD A: ZZzzZzzZZzzZzZZzZz...", "THREAD A: GOOD MORNING!", 25 };
     Thread a_thr(good_night, &a_params);
 
@@ -199,9 +209,9 @@ void KernelTests::time_sleep_test() {
     b_thr.start();
     c_thr.start();
 
-    print_string("KERNEL: ZZzzZzzZZzzZzZZzZz...");
+    Console::print_string("KERNEL: ZZzzZzzZZzzZzZZzZz...");
     time_sleep(15);
-    print_string("KERNEL: GOOD MORNING!");
+    Console::print_string("KERNEL: GOOD MORNING!");
 
     a_thr.join();
     b_thr.join();
@@ -210,15 +220,15 @@ void KernelTests::time_sleep_test() {
 
 
 static void good_bye(void* args) {
-    print_string("BEFORE THREAD EXIT");
+    Console::print_string("BEFORE THREAD EXIT");
 
     // If thread_exit works, the print below shouldn't execute.
     thread_exit();
 
-    print_string("AFTER THREAD EXIT");
+    Console::print_string("AFTER THREAD EXIT");
 }
 
-void KernelTests::thread_exit_test() {
+void Kernel::Tests::thread_exit_test() {
     Thread exit_thr(good_bye, nullptr);
     exit_thr.start();
     exit_thr.join();
@@ -233,10 +243,10 @@ namespace {
     protected:
         virtual void periodicActivation() override {
             if (this->ping) {
-                print_string("PING");
+                Console::print_string("PING");
             }
             else {
-                print_string("PONG");
+                Console::print_string("PONG");
             }
             this->ping = !this->ping;
         }
@@ -248,7 +258,7 @@ namespace {
     };
 }
 
-void KernelTests::periodic_thread_test() {
+void Kernel::Tests::periodic_thread_test() {
     PingPong p;
     p.start();
 
@@ -268,17 +278,17 @@ namespace {
         IOTestParams* params = (IOTestParams*)args;
 
         params->io_mutex->wait();
-        print_string(params->message, ' ');
-        char* str = get_string();
-        print_string(params->message, ' ');
-        print_string(str);
+        Console::print_string(params->message, ' ');
+        char* str = Console::get_string();
+        Console::print_string(params->message, ' ');
+        Console::print_string(str);
         params->io_mutex->signal();
 
         mem_free(str);
     }
 }
 
-void KernelTests::console_io_test() {
+void Kernel::Tests::console_io_test() {
     Semaphore console_sem(1);
 
     IOTestParams a_params = { &console_sem, "Thread A: " };
@@ -300,7 +310,7 @@ void KernelTests::console_io_test() {
 }
 
 
-void KernelTests::run_tests() {
+void Kernel::Tests::run_tests() {
     memory_test();
 
     threads_test();
