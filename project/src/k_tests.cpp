@@ -301,13 +301,13 @@ namespace {
 void Kernel::Tests::console_io_test() {
     Semaphore console_sem(1);
 
-    IOTestParams a_params = { &console_sem, "Thread A: " };
+    IOTestParams a_params = { &console_sem, "Thread A:" };
     Thread a_thr(thread_io, (void*)&a_params);
 
-    IOTestParams b_params = { &console_sem, "Thread B: " };
+    IOTestParams b_params = { &console_sem, "Thread B:" };
     Thread b_thr(thread_io, (void*)&b_params);
 
-    IOTestParams c_params = { &console_sem, "Thread C: " };
+    IOTestParams c_params = { &console_sem, "Thread C:" };
     Thread c_thr(thread_io, (void*)&c_params);
 
     a_thr.start();

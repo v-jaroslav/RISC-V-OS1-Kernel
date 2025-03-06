@@ -6,7 +6,6 @@
 #include "syscall_cpp.hpp"
 #include "k_utils.hpp"
 
-
 // NOTE: Set this to 0, if you don't want to run the kernel tests that are written by me.
 #define RUN_KERNEL_TESTS 1
 
