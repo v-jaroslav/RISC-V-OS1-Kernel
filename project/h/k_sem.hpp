@@ -9,11 +9,10 @@ namespace Kernel {
     class Sem {
     private:
         int value;
-        bool closing;
-        List<TCB> suspended;
+        List<TCB> suspended_tcbs;
 
         void block();
-        int unblock();
+        int unblock(bool wait_error);
 
     public:
         static Sem* create_sem(int value);

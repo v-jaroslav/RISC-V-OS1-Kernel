@@ -5,7 +5,7 @@
 #include "../h/k_memory.hpp"
 #include "../h/syscall_c.hpp"
 #include "../h/queue.hpp"
-#include "../h/utils.hpp"
+#include "../h/k_utils.hpp"
 
 using namespace Kernel;
 
@@ -167,7 +167,7 @@ extern "C" void Kernel::k_handle_ecall(uint64 syscall_code, uint64 p0, uint64 p1
             putc_buffer.put(messages[(scause_val - 2) / 2][i]);
         }
 
-        uint64 tens = get_decimal_weight(sepc_val);
+        uint64 tens = Utils::get_decimal_weight(sepc_val);
         while(tens) {
             // Perform integer division on "number" with "tens", take remainder when dividing by 10, and divide "tens" later with 10, so that we take digits from left to right.
             putc_buffer.put('0' + (sepc_val / tens) % 10);

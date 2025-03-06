@@ -1,5 +1,5 @@
 #include "k_memory.hpp"
-#include "utils.hpp"
+#include "k_utils.hpp"
 
 namespace Kernel {
     MemoryAllocator::MemoryAllocator() {
@@ -43,7 +43,7 @@ namespace Kernel {
 
         if (best) {
             blocks_t remaining_blocks = best->n_blocks - n_blocks;
-            if (to_blocks(sizeof(FreeBlocks)) <= remaining_blocks) {
+            if (Utils::to_blocks(sizeof(FreeBlocks)) <= remaining_blocks) {
                 // If there is enough memory left for header FreeBlocks, then we are creating new FreeBlocks element, and we are chaining it to the list.
                 FreeBlocks* new_fb = (FreeBlocks*)((uint64)best + n_blocks * MEM_BLOCK_SIZE);
                 new_fb->n_blocks = remaining_blocks;

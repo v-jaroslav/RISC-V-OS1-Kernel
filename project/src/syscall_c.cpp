@@ -1,6 +1,6 @@
 #include "syscall_c.hpp"
 #include "k_syscall_codes.hpp"
-#include "utils.hpp"
+#include "k_utils.hpp"
 
 static uint64 k_system_call(uint64 a0 = 0, uint64 a1 = 0, uint64 a2 = 0, uint64 a3 = 0, uint64 a4 = 0, uint64 a5 = 0, uint64 a6 = 0, uint64 a7 = 0) {
     __asm__ volatile("ecall");
@@ -9,7 +9,7 @@ static uint64 k_system_call(uint64 a0 = 0, uint64 a1 = 0, uint64 a2 = 0, uint64 
 
 
 void* mem_alloc(size_t size) {
-    return (void*)k_system_call(Kernel::MEM_ALLOC_CODE, to_blocks(size));
+    return (void*)k_system_call(Kernel::MEM_ALLOC_CODE, Kernel::Utils::to_blocks(size));
 }
 
 int mem_free(void* address) {

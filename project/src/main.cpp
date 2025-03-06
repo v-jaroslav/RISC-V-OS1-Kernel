@@ -4,7 +4,7 @@
 #include "k_scheduler.hpp"
 #include "syscall_c.hpp"
 #include "syscall_cpp.hpp"
-#include "utils.hpp"
+#include "k_utils.hpp"
 
 
 // NOTE: Set this to 0, if you don't want to run the kernel tests that are written by me.
@@ -38,7 +38,7 @@ void main() {
     __asm__ volatile ("csrw stvec, %0" : : "r" ((uint64)k_intr_table | 1));
 
     // Create kernel stack for the main thread for the sake of completeness, and set the SP to point to the &sys_stack[last_index + 1], due to the nature of how RISC V stack behaves.
-    main_tcb.sys_stack = (uint64*)MemoryAllocator::get_instance().alloc(to_blocks(DEFAULT_STACK_SIZE));
+    main_tcb.sys_stack = (uint64*)MemoryAllocator::get_instance().alloc(Utils::to_blocks(DEFAULT_STACK_SIZE));
     main_tcb.context.sys_sp = (uint64)&main_tcb.sys_stack[DEFAULT_STACK_SIZE / sizeof(uint64)];
 
     // Initialize the semaphores for console buffers. At the start we can exeucte putc IO_BUFFER_SIZE times since it is empty.

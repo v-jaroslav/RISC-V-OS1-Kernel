@@ -2,7 +2,7 @@
 #include "../h/k_memory.hpp"
 #include "../h/k_scheduler.hpp"
 #include "../h/syscall_c.hpp"
-#include "../h/utils.hpp"
+#include "../h/k_utils.hpp"
 
 using namespace Kernel;
 
@@ -19,7 +19,7 @@ time_t volatile Kernel::timer_ticks = 0;
 TCB* Kernel::create_tcb(void (*body)(void* args), void* args, uint64* stack_space) {
     if(body && stack_space) {
         // We create new thread, only if the function that should be executed is passed, and the space for its stack.
-        TCB* new_tcb = (TCB*)MemoryAllocator::get_instance().alloc(to_blocks(sizeof(TCB)));
+        TCB* new_tcb = (TCB*)MemoryAllocator::get_instance().alloc(Utils::to_blocks(sizeof(TCB)));
         if(!new_tcb) {
             return nullptr;
         }
@@ -39,7 +39,7 @@ TCB* Kernel::create_tcb(void (*body)(void* args), void* args, uint64* stack_spac
         new_tcb->context.usr_sp = (uint64)stack_space;
 
         // Allocate the kernel stack and set it.
-        new_tcb->sys_stack = (uint64*)MemoryAllocator::get_instance().alloc(to_blocks(DEFAULT_STACK_SIZE));
+        new_tcb->sys_stack = (uint64*)MemoryAllocator::get_instance().alloc(Utils::to_blocks(DEFAULT_STACK_SIZE));
         if(!new_tcb->sys_stack) {
             free_tcb(new_tcb);
             return nullptr;

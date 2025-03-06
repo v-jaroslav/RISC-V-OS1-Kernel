@@ -1,7 +1,7 @@
 #include "syscall_cpp.hpp"
 #include "syscall_cpp.hpp"
+#include "k_utils.hpp"
 #include "k_sem.hpp"
-#include "utils.hpp"
 
 
 // This is a semaphore used as mutex to lock/unlock the console. Since it is static, it has internal linkage, so its visible only in this translation unit.
@@ -48,7 +48,7 @@ void Console::print_string(const char* message, char end) {
 }
 
 void Console::print_uint64(uint64 number, char end) {
-    uint64 weight = get_decimal_weight(number);
+    uint64 weight = Kernel::Utils::get_decimal_weight(number);
     console_lock();
 
     while (weight) {
