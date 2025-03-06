@@ -184,7 +184,7 @@ extern "C" void Kernel::k_handle_hardware(uint64 a0, uint64 a1, uint64 a2, uint6
     uint64 volatile scause_val;
     __asm__ volatile("csrr %0, scause" : "=r" (scause_val));
 
-    if(scause_val == 0x8000000000000001UL) {
+    if (scause_val == 0x8000000000000001UL) {
         // In SIP registry, write to the 2nd bit SSIP 0, with that we say that we handled the software interrupt.
         __asm__ volatile("csrc sip, 0x02");
 
@@ -207,6 +207,7 @@ extern "C" void Kernel::k_handle_hardware(uint64 a0, uint64 a1, uint64 a2, uint6
         fill_getc_buffer();
     }
 }
+
 
 void Kernel::prepare_user_mode() {
     uint64 volatile sstatus_val;

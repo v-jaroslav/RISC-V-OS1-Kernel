@@ -1,9 +1,9 @@
 #pragma once
 
-#include "../lib/hw.h"
+#include "hw.h"
 
 namespace Kernel {
-    // Every register in RISC-V architecture has 64 bit size.
+    // Every register in RISC-V architecture has 64 bit size, and register value may change at any time, so its volatile.
     typedef volatile uint64 Register;
 
     struct Context {

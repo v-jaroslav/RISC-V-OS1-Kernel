@@ -1,8 +1,9 @@
+// Export k_restore_context symbol as a function.
 .global k_restore_context
 .type k_restore_context, @function
 
 k_restore_context:
-    // Retore the following registries from Context struct.
+    // Retore the following registries from Context struct (of which address is located in a0 registry).
     ld ra, 0x00(a0)
 
     // Read sys_sp, sp that points to the kernel stack.
@@ -39,15 +40,18 @@ k_restore_context:
     ld a3, 0xe0(a0)
     ld a2, 0xe8(a0)
 
+    // Here we must first load SEPC to a1, and then we store a1 to SEPC, as we are dealing with privileged registries and instructions.
     ld a1, 0x100(a0)
     csrw sepc, a1
 
+    // Same for SSTATUS
     ld a1, 0x108(a0)
     csrw sstatus, a1
 
+    // Now we can restore a1 from context to a1 registry normally.
     ld a1, 0xf0(a0)
 
-    // To a0 (registry of return value), before you return, write value 1, so that you know that you are returning from context restauration.
+    // To a0 (registry of return value), before you return, write value 1, so that you know that you are returning from the context restauration.
     // This function will return us back to where we would return from k_save_context, just like longjmp.
     lui a0, 0x0000000000000001
     ret

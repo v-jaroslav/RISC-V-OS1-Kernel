@@ -1,7 +1,7 @@
-// Align the interrupt on 4 bytes.
+// Align the interrupt vector table to be on address that is divisible by 4.
 .align 4
 
-// Export the symbol, for the interrupt vector table.
+// Export the symbol for the interrupt vector table.
 .global k_intr_table
 .type k_intr_table, @function
 

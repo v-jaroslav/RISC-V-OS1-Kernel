@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../lib/hw.h"
+#include "hw.h"
 #include "list.hpp"
 #include "k_tcb.hpp"
 

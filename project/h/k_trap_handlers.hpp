@@ -1,10 +1,9 @@
 #pragma once
 
-#include "../lib/hw.h"
+#include "hw.h"
 #include "k_sem.hpp"
 
-namespace Kernel 
-{
+namespace Kernel {
     constexpr int INSTRUCTION_SIZE = 4;
     constexpr int IO_BUFFER_SIZE = 2048;
 

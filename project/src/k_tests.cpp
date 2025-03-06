@@ -21,12 +21,14 @@ static void print_horizontal_line(int length, char end = '\n') {
 
 
 void Kernel::Tests::memory_test() {
-    // For every array of 8 elements, where each element is 8 bytes, we need 1 single block, if the block is 64B, we allocate three blocks.
+    // For every array of 8 elements, where each element is 8 bytes, we need 1 single block, if the block is 64B, therefore we allocate three blocks.
     uint64* arr1 = (uint64*)mem_alloc(sizeof(uint64) * 8);
     uint64* arr2 = (uint64*)mem_alloc(sizeof(uint64) * 8);
     uint64* arr3 = (uint64*)mem_alloc(sizeof(uint64) * 8);
 
-    for(int i = 0; i < 8; i++) {
+    
+    // Set values of arrays and print them.
+    for (int i = 0; i < 8; ++i) {
         arr1[i] = 100 + i;
         arr2[i] = 200 + i;
         arr3[i] = 300 + i;
@@ -38,16 +40,19 @@ void Kernel::Tests::memory_test() {
     print_horizontal_line(35);
 
 
-    // Deallocate first two arrays, so basically first two blocks. First three numbers of boths arrays will contain fields of FreeBlocks structure, and they will be merged.
+    // Deallocate first two arrays, so basically first two blocks. First three elements of boths arrays will contain fields of FreeBlocks structure, and they will be merged.
+    // We say first three elements, because FreeBlocks has *next *prev and n_blocks fields. And that free space is used for that data.
+    // But yes, the pointer that is returned to the user when he allocates block, is returned such that it points to very first element (that data can be overwritten by the user).
     mem_free(arr2);
     mem_free(arr1);
 
-    // For this array, 3 blocks are necessary if the block is 64B, that way it wont be allocated on previously freed space, but after it.
+    // For this array, 3 blocks are necessary if the block is 64B, that way it won't be allocated on previously freed space, but after it.
     uint64* arr4 = (uint64*)mem_alloc(sizeof(uint64) * 17);
-    for(int i = 0; i < 17; i++) {
+    for (int i = 0; i < 17; ++i) {
         arr4[i] = 400 + i;
     }
 
+    // Print all arays again, even the freed ones.
     print_uint64_array(arr1, 8);
     print_uint64_array(arr2, 8);
     print_uint64_array(arr3, 8);
@@ -57,10 +62,11 @@ void Kernel::Tests::memory_test() {
 
     // For this array, 2 blocks are necessary if the size of the block is 64B. It will be allocated in place of first two freed arrays.
     uint64* arr5 = (uint64*)mem_alloc(sizeof(uint64) * 16);
-    for(int i = 0; i < 16; i++) {
+    for (int i = 0; i < 16; ++i) {
         arr5[i] = 500 + i;
     }
 
+    // Print all arays again, even the freed ones (should print elements of arr5).
     print_uint64_array(arr1, 8);
     print_uint64_array(arr2, 8);
     print_uint64_array(arr3, 8);
@@ -74,6 +80,7 @@ void Kernel::Tests::memory_test() {
     mem_free(arr4);
     mem_free(arr5);
 
+    // Print all of them again.
     print_uint64_array(arr1, 8);
     print_uint64_array(arr2, 8);
     print_uint64_array(arr3, 8);
@@ -82,9 +89,9 @@ void Kernel::Tests::memory_test() {
     print_horizontal_line(35);
 
 
-    // Tetst overloaded C++ operators.
+    // Tetst overloaded C++ operators, basically the same thing as above just C++ API.
     uint64* cpp_alloc = new uint64[15];
-    for(int i = 0; i < 15; ++i) {
+    for (int i = 0; i < 15; ++i) {
         cpp_alloc[i] = 600 + i;
     }
     print_uint64_array(cpp_alloc, 15);
@@ -97,14 +104,15 @@ void Kernel::Tests::memory_test() {
 
 
 namespace {
+    // Functions/Classes with internal linking, used by threads_test().
     void print_loop_standard(void* args) {
-        for(int i = 0; i < 2000; i++) {
+        for (int i = 0; i < 2000; ++i) {
             Console::print_string((char*)args);
         }
     }
 
     void print_loop_dispatched(void* args) {
-        for(int i = 0; i < 2000; i++) {
+        for (int i = 0; i < 2000; ++i) {
             Console::print_string((char*)args);
             Thread::dispatch();
         }
@@ -118,7 +126,7 @@ namespace {
 }
 
 void Kernel::Tests::threads_test() {
-    // Test asynchronous/synchronous preemption.
+    // Test asynchronous/synchronous preemption, "..." is const char* (which points to data in readonly section of memory), so we cast it to void* since its pointer.
     Thread s_thr(print_loop_standard, (void*)"+++ Standard Thread");
     Thread d_thr(print_loop_dispatched, (void*)"*** Dispatch Thread");
     CustomThread ct_thr;
@@ -128,7 +136,7 @@ void Kernel::Tests::threads_test() {
     d_thr.start();
     ct_thr.start();
 
-    // Test multiple waitings.
+    // Wait for all threads to finish running! 
     s_thr.join();
     s_thr.join();
 
@@ -162,19 +170,21 @@ void Kernel::Tests::semaphore_test() {
     // Semaphore for mutual exclusion.
     Semaphore mutex(1);
 
-    // Create 5 threads and start them.
-    Thread thread_array[5] = {Thread(synched_printing, &mutex),
-                              Thread(synched_printing, &mutex),
-                              Thread(synched_printing, &mutex),
-                              Thread(synched_printing, &mutex),
-                              Thread(synched_printing, &mutex)};
+    // Create 5 threads and start all of them.
+    Thread thread_array[5] = {
+        Thread(synched_printing, &mutex),
+        Thread(synched_printing, &mutex),
+        Thread(synched_printing, &mutex),
+        Thread(synched_printing, &mutex),
+        Thread(synched_printing, &mutex)
+    };
 
-    for(int i = 0; i < 5; i++) {
+    for (int i = 0; i < 5; i++) {
         thread_array[i].start();
     }
 
     // Wait for all threads to finish.
-    for(int i = 0; i < 5; i++) {
+    for (int i = 0; i < 5; i++) {
         thread_array[i].join();
     }
 }
@@ -196,13 +206,13 @@ namespace {
 }
 
 void Kernel::Tests::time_sleep_test() {
-    SleepParams a_params = {"THREAD A: ZZzzZzzZZzzZzZZzZz...", "THREAD A: GOOD MORNING!", 25 };
+    SleepParams a_params = { "THREAD A: ZZzzZzzZZzzZzZZzZz...", "THREAD A: GOOD MORNING!", 25 };
     Thread a_thr(good_night, &a_params);
 
-    SleepParams b_params = {"THREAD B ZZzzZzzZZzzZzZZzZz...", "THREAD B: GOOD MORNING!", 10 };
+    SleepParams b_params = { "THREAD B ZZzzZzzZZzzZzZZzZz...", "THREAD B: GOOD MORNING!", 10 };
     Thread b_thr(good_night, &b_params);
 
-    SleepParams c_params = {"THREAD C ZZzzZzzZZzzZzZZzZz...", "THREAD C: GOOD MORNING!", 10 };
+    SleepParams c_params = { "THREAD C ZZzzZzzZZzzZzZZzZz...", "THREAD C: GOOD MORNING!", 10 };
     Thread c_thr(good_night, &c_params);
 
     a_thr.start();

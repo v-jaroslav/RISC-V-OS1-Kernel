@@ -1,11 +1,12 @@
+// Export k_save_context symbol as a function.
 .global k_save_context
 .type k_save_context, @function
 
 k_save_context:
-    // Save the following registries to the current context.
+    // Save the following registries to the current context (of which address is in a0 registry).
     sd ra, 0x00(a0)
 
-    // Save sp that points to kernel stack (sys_sp).
+    // Save sp that points to kernel stack (sys_sp), its for sure kernel stack as this is done in the supervisor mode.
     sd sp, 0x10(a0)
 
     sd gp, 0x18(a0)
@@ -40,7 +41,7 @@ k_save_context:
     sd a2, 0xe8(a0)
     sd a1, 0xf0(a0)
 
-    // Save SEPC through a1 register.
+    // Save SEPC through a1 register (we can do that as we saved a1 to the context struct), and we need to privileged instruction to read system registers.
     csrr a1, sepc
     sd a1, 0x100(a0)
 
@@ -51,6 +52,7 @@ k_save_context:
     // Read back already saved a1.
     ld a1, 0xf0(a0)
 
-    // To a0 (registry of return value), before you return back, write 0, so that you know that you are indeed returning from this function. Inspired by setjmp function.
+    // To a0 (registry of return value, its used for that too yes.), before you return back, write 0. 
+    // So that you know that you are indeed returning from this function, and not from k_restore_context, inspired by setjmp function.
     lui a0, 0x0000000000000000
     ret
