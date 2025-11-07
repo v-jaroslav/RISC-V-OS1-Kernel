@@ -1,17 +1,16 @@
 # RISC-V-OS1-Kernel
-This repository contains my kernel that I have built as part of the "Operating Systems 1" course during my 2nd year at the University of Belgrade at the School of Electrical Engineering.
+This repository contains a kernel that I have developed as part of the "Operating Systems 1" course during my 2nd year at the University of Belgrade at the School of Electrical Engineering.
 
-This kernel has following important characteristics:
-- It is running on RISC-V CPU, specifically RV64IMA architecture.
-- It provides ABI that is used by C API, and C++ API that is implemented by using C API (it has layered architecture).
+Important characteristics of this kernel:
+- It is running on a single core RISC-V CPU, specifically RV64IMA architecture.
+- It has layered architecture, it has ABI that is used by C API, and C++ API that is implemented with C API.
 - It utilizes Best-Fit algorithm for memory allocation.
 - The kernel supports asynchronous preemption, meaning it can change the current running thread with another thread uppon interrupt (at any time).
-- The threads share the CPU across the time, with timed interrupts, by utilizing Round Robin scheduling algorithm.
+- The threads share the CPU across the time with timed interrupts, by utilizing Round Robin scheduling algorithm.
 - Every thread has two stacks, one for the user level privilege, and another for kernel operations.
 - It supports standard input / output through UART protocol.
-- It suuports semaphores, a primitive for synchronization, and many other things which you can checkout in the table below. 
-- It has protection against executing privileged instructions in user mode.
-- The kernel does all of this with a single CPU core.
+- It gives support for semaphores, a primitive for synchronization, and many other things which you can checkout in the table below. 
+- It has protection against executing privileged instructions in the user mode.
 
 
 ## This kernel supports the following C API:
@@ -19,10 +18,10 @@ This kernel has following important characteristics:
 | System Call Code | Signature                                                                                                                             | Explanation                                                                                                                                                                                                                                       |
 |------------------|---------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | 0x01             | void* mem_alloc(size_t size);                                                                                                         | Allocate at least `size` bytes of memory, rounded up to and alligned with blocks of size `MEM_BLOCK_SIZE`, returns pointer to allocated memory, or null on failure.                                                                               |
-| 0x02             | int mem_free(void*);                                                                                                                  | Frees the memory that was previously allocated with mem_alloc (the argument must be pointer returned from mem_alloc), returns 0 if operation was successful, otherwise negative value.                                                            |
-| 0x11             | class _thread; <br> typedef _thread* thread_t; <br> <br> int thread_create(thread_t* handle, void(*start_routine)(void*), void* arg); | Start a new thread on `start_routine` function, which will be called with `arg` as its argument. If this succeeds, in `handle` parameter, the handle of the thread will be written, and 0 will be returned, otherwise negative value is returned. |
-| 0x12             | int thread_exit();                                                                                                                    | Shuts down the current running thread, in case of failure, negative value is returned.                                                                                                                                                            |
-| 0x13             | void thread_dispatch();                                                                                                               | Potentially takes away the CPU of the currently running thread and gives it to another thread (potentially to the currently running thread again).                                                                                                |
+| 0x02             | int mem_free(void*);                                                                                                                  | Frees the memory that was previously allocated with mem_alloc (the argument must be pointer returned from the mem_alloc), returns 0 if operation was successful, otherwise a negative value.                                                            |
+| 0x11             | class _thread; <br> typedef _thread* thread_t; <br> <br> int thread_create(thread_t* handle, void(*start_routine)(void*), void* arg); | Start a new thread on `start_routine` function, which will be called with `arg` as its argument. If this succeeds, in `handle` parameter, the handle of the thread will be written, and 0 will be returned, otherwise a negative value is returned. |
+| 0x12             | int thread_exit();                                                                                                                    | Shuts down the current running thread, in case of a failure, negative value is returned.                                                                                                                                                            |
+| 0x13             | void thread_dispatch();                                                                                                               | Potentially "takes away" the CPU of the currently running thread and "gives it" to another thread (potentially to the currently running thread again).                                                                                                |
 | 0x14             | void thread_join(thread_t handle);                                                                                                    | Suspend currently running thread, until the thread represented with `handle` finishes.                                                                                                                                                            |
 | 0x21             | class _sem; <br> typedef _sem* sem_t; <br> <br> int sem_open(sem_t* handle, unsigned init);                                           | Create semaphore with initial value `init`. In case of success, the handle of the semaphore is written to the parameter `handle` and 0 is returned, otherwise negative value is returned.                                                         |
 | 0x22             | int sem_close(sem_t handle);                                                                                                          | Free the semaphore with specific handle. All the threads that are still waiting on this semaphore get resumed, however their `wait` returns an error.                                                                                             |
@@ -102,31 +101,32 @@ public:
 
 
 ## How to run it?
-If you would like to run this kernel and try it out, you must have two things installed on your machine, `git` and `docker`.
+In order to run and try out this kernel, you must have two things installed on your machine, `git` and `docker`.
 
-1. Clone this repository to your machine with `git clone https://github.com/v-jaroslav/RISC-V-OS1-Kernel`
+1. Clone this repository to your machine with `git clone https://github.com/v-jaroslav/RISC-V-OS1-Kernel` command.
 
-2. Make sure you are located in the directory of the cloned repository, execute `cd RISC-V-OS1-Kernel`
+2. Make sure you are located in the root directory of the cloned repository, execute `cd RISC-V-OS1-Kernel` command.
 
-3. Build the docker image based on the `dockerfile`, with the command `docker build -f ./main.dockerfile --tag risc-v-kernel .`
+3. Build the docker image based on the dockerfile, with the command `docker build -f ./main.dockerfile --tag risc-v-kernel .`.
 
-4. Start the docker container based on the previously built image, such that you can interact with its console `docker run -it risc-v-kernel`
+4. Start the docker container based on the previously built image, such that you can interact with its console `docker run -it risc-v-kernel`.
 
-5. If you want to ever stop the kernel (by stopping QEMU), just press `CTRL + A` and immediatelly after that press `X`
+5. If you ever want to stop the kernel (by stopping QEMU), just press `ctrl + a` and immediatelly after that press `x`.
 
-The docker image you have built, based on that `dockerfile`, contains the necessary cross compilers to compile the code for RISC-V machine. 
+The docker image that is built based on that dockerfile, contains all the necessary cross compilers to compile the code for RISC-V machine.
 It also contains QEMU (open source machine emulator / virtualizer), through which you can run this kernel.
 
-By default, the tests that I have written will execute, and also the public tests (given by faculty) that were used to test this kernel at home while developing it.
+By default, the tests that I have written will execute, and also the public tests that were used to test this kernel at home while developing it (provided by the faculty).
 
-If you want to change that, you have to provide your own `void userMain()` function, preferrably in `project/src/main.cpp`. 
+To change that, you have to provide your own `void userMain()` function, preferably in `project/src/main.cpp`. 
 
-There you can already see commented out `void userMain() { ... }` example function, if you uncomment it, that one will run instead of the public tests given by faculty.
+In that file you can find commented out `void userMain() { ... }` example function, if you uncomment it, that one will run instead of the public tests.
 
-And that is simply because I have set the `void userMain() { ... }` that is defined by faculty to be weak symbol.
+That is because `void userMain() { ... }` that is defined in public tests is a weak symbol.
 
-Keep in mind, that this function runs at user level privilege. To access kernel level privilege, you can do so only indirectly through kernel's API.
+This function runs at the user privilege level. Kernel privilege level can be accessed only indirectly through kernel's API.
 
-In `project/src/main.cpp` you can also set the `RUN_KERNEL_TESTS` to 0, in order to not run the kernel tests that are written by me.
+In `project/src/main.cpp` you can set the `RUN_KERNEL_TESTS` to 0, in order to not run the kernel tests that I have written.
 
-And also, if you are wondering why the kernel crashes (panics) in the last public test. That is because it should. In that test, the user is trying to execute privileged instruction from the user mode, which is not allowed! And that's a protection mechanism against that!
+Also, if you are wondering why the kernel crashes (panics) in the last public test. That is because it should. In that test, a thread is trying to execute privileged instruction from the user mode, which is not allowed!
+
