@@ -10,7 +10,7 @@ namespace Kernel {
 
         // Calculate the maximum number of blocks that we can allocate without regard to alignment, assume padding is zero.
         blocks_t total_blocks = ((uint64)HEAP_END_ADDR - (uint64)HEAP_START_ADDR + 1) / (MEM_BLOCK_SIZE + sizeof(blocks_t));
-        blocks_t padding_size = 0;
+        uint32 padding_size = 0;
 
         // Now calculating N when we have padding and alignment issues, we want the second equation to hold.
         // N * MEM_BLOCK_SIZE + N * sizeof(blocks_t) + padding = (END_ADDR - START_ADDR + 1)
