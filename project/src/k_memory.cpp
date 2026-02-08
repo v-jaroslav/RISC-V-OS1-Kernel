@@ -3,26 +3,39 @@
 
 namespace Kernel {
     MemoryAllocator::MemoryAllocator() {
-        // Calculate the maximum number of blocks that we can allocate.
-        blocks_t total_blocks = ((uint64)HEAP_END_ADDR - (uint64)HEAP_START_ADDR) / MEM_BLOCK_SIZE;
+        // Assuming, we don't have alignment and padding issues, calculate the maximum number of blocks we can allocate and number of entries of allocation table.
+        // N_MAX * MEM_BLOCK_SIZE + N_MAX * sizeof(blocks_t) = (END_ADDR - START_ADDR + 1)
+        // N_MAX * (MEM_BLOCK_SIZE + sizeof(blocks_t)) = (END_ADDR - START_ADDR + 1)
+        // N_MAX = (END_ADDR - START_ADDR + 1) / (MEM_BLOCK_SIZE + sizeof(blocks_t)) 
 
-        // Initialize the allocation table with zeroes, after that move the HEAP_START after the table.
+        // Calculate the maximum number of blocks that we can allocate without regard to alignment, assume padding is zero.
+        blocks_t total_blocks = ((uint64)HEAP_END_ADDR - (uint64)HEAP_START_ADDR + 1) / (MEM_BLOCK_SIZE + sizeof(blocks_t));
+        blocks_t padding_size = 0;
+
+        // Now calculating N when we have padding and alignment issues, we want the second equation to hold.
+        // N * MEM_BLOCK_SIZE + N * sizeof(blocks_t) + padding = (END_ADDR - START_ADDR + 1)
+        // (START_ADDR + N * sizeof(blocks_t) + padding) % MEM_BLOCK == 0
+
+        // If the second equation does not hold, sacrifice one block for alignment.
+        // The remainder operator gives us how many bytes we have extra, that ruin the alignment to MEM_BLOCK_SIZE.
+        // So MEM_BLOCK_SIZE minus that many bytes, gives us the size of padding we need to reach the alignment.
+        if (((uint64)HEAP_START_ADDR + total_blocks * sizeof(blocks_t)) % MEM_BLOCK_SIZE != 0) {
+            total_blocks = total_blocks - 1;
+            padding_size = MEM_BLOCK_SIZE - ((uint64)HEAP_START_ADDR + total_blocks * sizeof(blocks_t)) % MEM_BLOCK_SIZE;
+        }
+
+        // Initialize the allocation table with zeroes.
         this->alloc_table = (blocks_t*)HEAP_START_ADDR;
         for (blocks_t i = 0; i < total_blocks; ++i) {
             this->alloc_table[i] = 0;
         }
-        HEAP_START_ADDR = (void*)((uint64)HEAP_START_ADDR + total_blocks * sizeof(blocks_t));
 
-        if((uint64)HEAP_START_ADDR % MEM_BLOCK_SIZE != 0) {
-            // In case the HEAP_START_ADDR address is not alligned to blocks, then shift it backwards (to the left) by remainder to make it aligned. 
-            // Then push it forwards by the size of the block, so that its not within the alloc table.
-            HEAP_START_ADDR = (void*)((uint64)HEAP_START_ADDR - (uint64)HEAP_START_ADDR % MEM_BLOCK_SIZE + MEM_BLOCK_SIZE);
-        }
+        // HEAP_START is now moved after the table.
+        HEAP_START_ADDR = (void*)((uint64)HEAP_START_ADDR + total_blocks * sizeof(blocks_t) + padding_size);
+
+        // Initialize the "in-band" linked list.
         this->fb_head = (FreeBlocks*)HEAP_START_ADDR;
-
-        // Divide the space between the current HEAP_START_ADDR and HEAP_END_ADDR addresses by the block size, to get the number of usable blocks. 
-        // The remainder that is smaller than one size of the block will be discarded through integer division. As the smallest allocatable unit is a block.
-        this->fb_head->n_blocks = ((uint64)HEAP_END_ADDR - (uint64)HEAP_START_ADDR) / MEM_BLOCK_SIZE;
+        this->fb_head->n_blocks = total_blocks;
         this->fb_head->next = (FreeBlocks*)nullptr;
         this->fb_head->prev = (FreeBlocks*)nullptr;
     }
